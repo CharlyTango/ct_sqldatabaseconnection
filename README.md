@@ -3,15 +3,17 @@ Connection framework for SQL databases (Lazarus/FPC)
 ## Content
 
 ### The framework consists of the following units locates in the **source** folder:
-***udmsqldb,pas/.lfm*** data module to connect to databases
-***uguessfile.pas***] Unit for search and help function of various files.
-***fcredentials.pas/lfm*** Manager for credentials and settings
-
+<ul>
+<li> udmsqldb.pas/.lfm -- data module to connect to databases
+<li> uguessfile.pas Unit -- for search and help function of various files.
+<li> fcredentials.pas/lfm -- Manager for credentials and settings
+</ul>
 
 Example application:
-***frame_example1*** sample frame with database and data functions.
-***unit1*** Main form of the sample application.
-***+Projektdatei***
+<li>frame_example1 -- sample frame with database and data functions.
+<li>unit1.pas/lfm -- Main form of the sample application.
+<li> + projectfiles
+</ul>
 
 ## Purpose
 <ul>
