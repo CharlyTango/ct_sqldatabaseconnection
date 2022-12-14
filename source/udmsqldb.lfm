@@ -1,0 +1,70 @@
+object dmsqldb: Tdmsqldb
+  OnCreate = DataModuleCreate
+  OnDestroy = DataModuleDestroy
+  OldCreateOrder = False
+  Height = 439
+  HorizontalOffset = 751
+  VerticalOffset = 464
+  Width = 572
+  PPI = 168
+  object SQLDBLibraryLoader1: TSQLDBLibraryLoader
+    Enabled = False
+    ConnectionType = 'SQLite3'
+    LibraryName = 'sqlite3.dll'
+    Left = 112
+    Top = 210
+  end
+  object SQLConnector1: TSQLConnector
+    Connected = False
+    LoginPrompt = False
+    KeepConnection = False
+    Transaction = SQLTransaction1
+    Options = [scoApplyUpdatesChecksRowsAffected]
+    ConnectorType = 'SQLite3'
+    Left = 112
+    Top = 88
+  end
+  object SQLTransaction1: TSQLTransaction
+    Active = False
+    Action = caCommit
+    Database = SQLConnector1
+    Options = [stoUseImplicit]
+    Left = 396
+    Top = 86
+  end
+  object SQLScript1: TSQLScript
+    DataBase = SQLConnector1
+    Transaction = SQLTransaction1
+    AutoCommit = False
+    UseDollarString = False
+    Directives.Strings = (
+      'SET TERM'
+      'COMMIT WORK'
+      'COMMIT RETAIN'
+      'COMMIT'
+      '#IFDEF'
+      '#IFNDEF'
+      '#ELSE'
+      '#ENDIF'
+      '#DEFINE'
+      '#UNDEF'
+      '#UNDEFINE'
+    )
+    Terminator = ';'
+    CommentsinSQL = True
+    UseSetTerm = True
+    UseCommit = True
+    UseDefines = True
+    Left = 392
+    Top = 210
+  end
+  object SQLQuery1: TSQLQuery
+    FieldDefs = <>
+    Database = SQLConnector1
+    Transaction = SQLTransaction1
+    Params = <>
+    Macros = <>
+    Left = 252
+    Top = 322
+  end
+end
