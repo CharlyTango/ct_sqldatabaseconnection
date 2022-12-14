@@ -57,6 +57,7 @@ Missing config files are automatically generated locally with standard values wh
 <li>copy the downloaded code to any folder
 <li>open the project file (using Lazarus) located in the folder project_SQLdbGUI
 <li>compile and run
+<li>follow instructions in some message windows as they open.
 </ul>
 
 
