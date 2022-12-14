@@ -10,6 +10,7 @@ Connection framework for SQL databases (Lazarus/FPC)
 </ul>
 
 Example application:
+<ul>
 <li>frame_example1 -- sample frame with database and data functions.
 <li>unit1.pas/lfm -- Main form of the sample application.
 <li> + projectfiles
@@ -52,4 +53,10 @@ Missing config files are automatically generated locally with standard values wh
 
 ## Usage
 
-copy the code to any folder and open the project file (using Lazarus) located in the folder project_SQLdbGUI
+<ul>
+<li>copy the downloaded code to any folder
+<li>open the project file (using Lazarus) located in the folder project_SQLdbGUI
+<li>compile and run
+</ul>
+
+
