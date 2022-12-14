@@ -2,18 +2,18 @@
 Connection framework for SQL databases (Lazarus/FPC)
 ## Content
 
-### The framework consists of the following units:
-[b][i]udmsqldb,pas/.lfm[/i][/b] data module to connect to databases
-[b][i]uguessfile.pas[/i][/b] Unit for search and help function of various files.
-[b][i]fcredentials.pas/lfm[/i][/b] Manager for credentials and settings
+### The framework consists of the following units locates in the **source** folder:
+***udmsqldb,pas/.lfm*** data module to connect to databases
+***uguessfile.pas***] Unit for search and help function of various files.
+***fcredentials.pas/lfm*** Manager for credentials and settings
 
 
 Example application:
-[b][i]frame_example1[/i][/b] sample frame with database and data functions.
-[b][i]unit1[/i][/b] Main form of the sample application.
-[b][i]+Projektdatei[/i][/b]
+***frame_example1*** sample frame with database and data functions.
+***unit1*** Main form of the sample application.
+***+Projektdatei***
 
-## Usage
+## Purpose
 <ul>
 <li>Base for database sample programs
 <li>Test environment for single forms or frames
@@ -46,4 +46,7 @@ and other helpers,,,
 
 Saving the SQL credentials (passwords and server etc.) is not critical because for a sample program the INI file is not supplied.
 Missing config files are automatically generated locally with standard values when the application starts.
+
+
+## Usage
 
