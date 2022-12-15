@@ -70,14 +70,6 @@
         <IsPartOfProject Value="True"/>
       </Unit>
       <Unit>
-        <Filename Value="..\source\demo1.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
-        <Filename Value="..\source\demo2.inc"/>
-        <IsPartOfProject Value="True"/>
-      </Unit>
-      <Unit>
         <Filename Value="..\source\fcredentials.pas"/>
         <IsPartOfProject Value="True"/>
         <ComponentName Value="frmCredentials"/>
