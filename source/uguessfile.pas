@@ -95,7 +95,7 @@ begin
     sLibName:=sLibraryName;
 
   {$ifdef Unix}
-  sPathString:='';//no directories necessary for Linux but must be installed
+  sPathString:='';//no directories to search as Linux libraries have to be installed
   {$else}
     //Search libraries with bitness
     if GetTargetCPUinfo = 'i386' then
@@ -209,7 +209,7 @@ begin
   sSearchedin:='';
 
   {$ifdef Unix}
-  sPathString:='to define';
+  sPathString:='sql@data';
   {$else}
   sPathString := 'sql@data';
   {$endif}
@@ -233,12 +233,6 @@ begin
 
   if result=cUNDEF  then  begin
 
-  //raise Exception.Create( LineEnding
-  //                        + 'File: ' + {$INCLUDE %FILE%} + LineEnding
-  //                        + 'Methodname: ' +  {$I %CURRENTROUTINE%} + LineEnding
-  //                        + 'Linenumber: ' + {$INCLUDE %LINE%} + LineEnding +LineEnding
-  //                        + 'tried to find SQL import File '
-  //                        +s);
     if sSQLCustomImportFileName='' then begin
       s:= cSQLStandardImportFileName + ' in '
       + LineEnding + LineEnding
@@ -255,13 +249,12 @@ begin
       + 'Please provide ' + 'either' + sSQLCustomImportFileName + ' or ' + cSQLStandardImportFileName +' in one of the searchpaths';
     end;
 
-
     showmessage( LineEnding
                           + 'File: ' + {$INCLUDE %FILE%} + LineEnding
                           + 'Methodname: ' +  {$I %CURRENTROUTINE%} + LineEnding
                           + 'Linenumber: ' + {$INCLUDE %LINE%} + LineEnding +LineEnding
                           + 'tried to find SQL import File '
-                          +s);
+                          + s );
 
   end;
 end;
@@ -275,7 +268,7 @@ begin
   sSearchedin:='';
 
   {$ifdef Unix}
-  sPathString:='to define';
+  sPathString:='data@sql';
   {$else}
   sPathString := 'data@sql';
   {$endif}
@@ -301,7 +294,7 @@ begin
     if FileExists(result) then begin
       DeleteFile(result);
       //if you want extra information uncomment next line.
-      //showmessage('old database file was deleted and will be created as fresh new file');
+      //showmessage('old database file was deleted and will be created as a brand new file');
     end;
   end;
 
@@ -323,7 +316,7 @@ begin
     sFileName:=sIniFileName;
 
   {$ifdef Unix}
-  sPathString:='';//no directories unser Linux necessary
+  sPathString:='config@sql';
   {$else}
   sPathString := 'config@sql';
   {$endif}
