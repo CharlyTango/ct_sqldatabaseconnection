@@ -1,35 +1,44 @@
+{*******************************************************
+connection framework for SQL-databases
+
+Author: CharlyTango
+License: LGPL with Extensions
+Copyright (c) 2022,CharlyTango
+https://github.com/CharlyTango/ct_sqldatabaseconnection
+*******************************************************}
+
 unit udmsqldb;
 
 {$mode ObjFPC}{$H+}
 
-//Switches:
-//You can disable switches by using a period after the curved
-//bracket like this  {.$DEFINE SWITCHNAME}
 
-{If you want to use a SQL log enable the switch}
+{If you want to use a SQL log enable the switch by removing the period after the bracket}
 {.$DEFINE UseSQLLOG}
 
 {Note: an extra possibility to run queries that have no result like  INSERT, DELET or DDL language
  - SQLQuery1 is provided.
-Create your own SQLQuery-Components as well as own Datasource-Components in your forms and
-connect them with the SQLConnector1
+
+You may also create your own SQLQuery-Components as well as own Datasource-Components in your forms and
+connect them with the dmsqldb.SQLConnector1
 }
 
 
 interface
 
 uses
-  Classes, SysUtils, SQLDBLib, SQLDB, Forms ,inifiles
+  Classes, SysUtils, SQLDBLib, SQLDB, Forms ,inifiles, Menus, SQLite3Conn
+  ,db //For EDataBaseError
   {$ifdef UseSQLLOG}
   , LazLogger
   {$endif}
 
-  , SQLite3Conn
-  //,pqconnection     //PostgreSQ
-  //,ibconnection     //Interbase ,Firebird
-  //,mssqlconn        //MSSQL Server , Sybase
-  //,oracleconnection //Oracle
-  //,odbcconn         //ODBC Access
+  //if you want to reduce the connection possibilities beside SQLite
+  //just comment the affected lines
+  ,pqconnection     //PostgreSQ
+  ,ibconnection     //Interbase ,Firebird
+  ,mssqlconn        //MSSQL Server , Sybase
+  ,oracleconnection //Oracle
+  ,odbcconn         //ODBC Access
   ,mysql40conn      //different MySQL Versions as well as MariaDB
   ,mysql41conn
   ,mysql50conn
@@ -45,6 +54,11 @@ const
   cSQLiteType='SQLite3';
   cConnectorType='SQLite3';
 
+  infoDatabaseChanged='Database Connection was changed';
+  infoDatabaseConnected='Connection Established';
+  infoDatabaseCouldNotConnect='Could not connect to Database';
+  infoDatabaseClosed='Database closed';
+  infoDatabaseCannotClose='Cannot close Database';
 
 type
   TDBCredentials = record
@@ -55,19 +69,22 @@ type
     Password: string;
     ConnectorType: string;
     CustomLibraryName:string;
+    CustomSQLScriptFileName:string;
     WasConnectionSuccess:string; //had a valid connection before
     caption:string;
     section:string;
 end;
 
 type
+
+  TMyInfoEvent = procedure(Sender: TObject; Info:string) of object;
+
   { Tdmsqldb }
 
   Tdmsqldb = class(TDataModule)
     SQLConnector1: TSQLConnector;
     SQLDBLibraryLoader1: TSQLDBLibraryLoader;
     SQLQuery1: TSQLQuery;
-    SQLScript1: TSQLScript;
     SQLTransaction1: TSQLTransaction;
     {$ifdef UseSQLLOG}
     procedure DoSQLLog(Sender: TSQLConnection; EventType: TDBEventType; const Msg: String);
@@ -85,8 +102,13 @@ type
     FsPossibleConnectorTypes: string;
     FrCredentials:TDBCredentials;  //Credentials-Record
     FsPossibleDatabaseConnections: string;  //String of possible Database Connectiond from INIfile
-    FsSQLCustomImportFileName: string;
     FbChooseDatabaseOnStartup:boolean;
+
+
+    FOnInfo:  TMyInfoEvent;
+    procedure DoInfo(Sender: TObject; Info: string);
+
+
 //    SQLServerType : TSQLServerType;
     procedure SetbAllowOpenDialogOnSQLImportFile(AValue: boolean);
     procedure SetbDeleteDatabasefileBeforeOpen(AValue: boolean);
@@ -104,12 +126,15 @@ type
 
     procedure SetCredentialsToSQLConnector;
 
+    //Show exception during executing SQL script
+    procedure ShowScriptException(Sender: TObject; Statement: TStrings; TheException: Exception; var Continue: boolean);
+
   public
     procedure Initialize;
     procedure ImportData(sImportFile: string='');
     procedure OpenConnection;
     procedure CloseConnection;
-    function ChangeConnection(sDBSection:string):boolean;
+    procedure ChangeConnection(sDBSection:string);
 
     {lists the available connection types depending on the SQL units included in the uses section;
     if bCreateText is false you will get the the possible connector Types in case you will choose them and switch between;
@@ -118,6 +143,9 @@ type
 
     function IsConnectorTypeValid(sConnectorType:string):boolean;
     procedure showcredentials;
+    //populate aMenu with possible Database Connections to change to
+    procedure RenewMenuItems(mCon:TMenuItem);
+    procedure MyMenuClick(Sender:TObject);
 
     {returns the current Version of the connected database}
     function GetDatabaseVersion:string;
@@ -141,6 +169,7 @@ type
     property pbAllowOpenDialogOnSQLImportFile:boolean read FbAllowOpenDialogOnSQLImportFile write SetbAllowOpenDialogOnSQLImportFile;
     property prCredentials:TDBCredentials read FrCredentials;
     property psConnectMessage:string read FsConnectMessage;
+    property OnInfo: TMyInfoEvent read FOnInfo write FOnInfo;
   end;
 
 var
@@ -231,11 +260,12 @@ end; //GetDefaultCredentials
 function CheckDataModuleAssigned: boolean;
 begin
   result:=false;
-  //Check if the datamodule exists before using it in case
-  //someone forgot to to create it in time or had
-  //put it to the first place
-  //in the project options Auto-Create forms list
-  //or had created it by sourcecode
+  {
+  Check if the datamodule exists before using it in case
+  -- someone forgot to to create it in time or
+  -- had put it to the first place in the project options Auto-Create forms list
+  -- or any other accidents
+  }
   if not assigned(dmsqldb) then
     raise Exception.Create( LineEnding
                           + 'File: ' + {$INCLUDE %FILE%} + LineEnding
@@ -283,6 +313,11 @@ end;
 
 procedure Tdmsqldb.DataModuleCreate(Sender: TObject);
 begin
+  {in case SQLConnector1 is active (Connected=true) in design mode errors my occur!
+  it is not possible to close such an open connection here because the code of the
+  grapical componets is executed before "DataModuleCreated"
+  Solution --> Close SQLConnector1 in Lazarus GUI before compiling}
+
   FsPossibleConnectorTypes:=ListConnectionTypes(false);
   FsConnectorType:= cConnectorType;
   FDeleteDatabasefileBeforeOpen:=true;
@@ -313,6 +348,12 @@ end;
 procedure Tdmsqldb.DataModuleDestroy(Sender: TObject);
 begin
   freeandnil(FIniFile);
+end;
+
+procedure Tdmsqldb.DoInfo(Sender: TObject; Info: string);
+begin
+  if Assigned(FOnInfo) then
+    FOnInfo(Sender, Info);
 end;
 
 
@@ -387,18 +428,12 @@ end;
 procedure Tdmsqldb.ImportData(sImportFile: string);
 var
   TransactionWasStarted: boolean;
-
+  SQLScript2:TSQLScript;
 begin
-  //store transaction state
-  TransactionWasStarted:=SQLTransaction1.Active;
-  if not TransactionWasStarted then SQLTransaction1.StartTransaction;
-
-  if SQLQuery1.Active then SQLQuery1.Close;
-
   if sImportfile = '' then begin
-     sImportFile := GuessSQLImportFile(FsSQLCustomImportFileName,FbAllowOpenDialogOnSQLImportFile);
+     sImportFile := GuessSQLImportFile(FrCredentials.CustomSQLScriptFileName,FbAllowOpenDialogOnSQLImportFile);
      if sImportFile = cUNDEF then begin //just in case
-        showmessage( 'SQL import file not found');
+        showmessage( 'SQL import file '+sImportFile+' not found');
         exit;
      end
   end;
@@ -406,15 +441,59 @@ begin
      showmessage('ImportData: File ' + sImportFile +'does not exist');
      exit;
   end;
-  try
-    SQLScript1.Script.LoadFromFile(sImportFile);
-    SQLScript1.ExecuteScript;     //oder.Execute???
-    SQLTransaction1.Commit;
-  finally
-    //
+
+  SQLScript2:=TSQLScript.Create(nil);
+  With SQLScript2 do
+  begin
+    //Autocommit:=true;  //Automatically commit every statement
+    DataBase:=SQLConnector1;
+    UseCommit:=true; //try process any COMMITs inside the script, instead of batching everything together. See readme.txt though
+    OnException:= @ShowScriptException;
+
+    UseDefines:=true;  //Automatically handle pre-processor defines
+    Terminator:=';';   //SQL script Terminator character.
+
+    {\lazarus\examples\database\tsqlscript\readme.txt:
+    - FPC 2.6.x versions currently have a bug that prevents running statements with : in them (e.g. Firebird stored procedure creation). FPC trunk/development version revision 26112 has fixed this..
+    - All TSQLScript versions (at least up to August 2014) suffer from a bug where comments in Firebird stored procedure and trigger creation scripts cause the script to fail (see http://bugs.freepascal.org/view.php?id=26571). A workaround is to set .CommentsInSQL to false (as is done in the demo) which strips out the comments.
+    - Firebird DDL (e.g. table creation) and DML (e.g. inserting data) must be separated by a COMMIT. This may also apply to other databases. FPC bug 17829 tracks this, but FPC 2.6.x or trunk currently contains no fix.
+    A workaround is to split the script into 2, see the sample program.
+    }
+
+    //Standard: CommentsinSQL:=true;
+    CommentsInSQL:=false; //Send commits to db server as well; could be useful to troubleshoot by monitoring all SQL statements at the server
+    Transaction:=SQLTransaction1;
+
+    //SET TERM is Firebird specific, used when creating stored procedures etc.
+    if FsConnectorType='Firebird' then
+      UseSetTerm:=true
+    else
+      UseSetTerm:=false;
   end;
-  // Make sure we leave the transaction state as we found it
-  if TransactionWasStarted then SQLTransaction1.StartTransaction;
+
+  try
+    //store transaction state
+    TransactionWasStarted:=SQLTransaction1.Active;
+    if not TransactionWasStarted then SQLTransaction1.StartTransaction;
+
+    try
+      SQLScript2.Script.LoadFromFile(sImportFile);
+      SQLScript2.ExecuteScript;     //oder.Execute???
+      SQLTransaction1.Commit;
+    except
+      on E: EDataBaseError do
+      begin
+        // Error was already displayed via ShowScriptException, so no need for this:
+        //ShowMessage('Error running script: '+E.Message);
+        SQLTransaction1.Rollback;
+      end;
+    end;
+  finally
+    freeandnil(SQLScript2);
+
+    // Make sure we leave the transaction state as we found it
+    if TransactionWasStarted then SQLTransaction1.StartTransaction;
+  end;
 end;
 
 
@@ -424,7 +503,8 @@ begin
   begin
     try
       SQLConnector1.Open;
-      FsConnectMessage:='Connection established to '+FrCredentials.section+', Database ready'
+      FsConnectMessage:='Connection established to '+FrCredentials.section+', Database ready';
+      DoInfo(self,infoDatabaseConnected);
     except
       On E : Exception do
         begin
@@ -441,6 +521,7 @@ begin
       FsConnectMessage:='Could not establish connection to '+FrCredentials.section+'-- closing connection, Database offline';
       showmessage(FsConnectMessage);
       SQLConnector1.Close;
+      DoInfo(self,infoDatabaseCouldNotConnect);
     end;
   end;
 end;
@@ -448,21 +529,30 @@ end;
 procedure Tdmsqldb.CloseConnection;
 begin
     if SQLConnector1.Connected then SQLConnector1.Close;
-    FsConnectMessage:='Connection closed, Database offline';
+    if not SQLConnector1.Connected then begin
+      FsConnectMessage:='Connection closed, Database offline';
+      DoInfo(self,infoDatabaseClosed);
+    end
+    else begin
+      FsConnectMessage:='Connection cannot be closed';
+      DoInfo(self,infoDatabaseCannotClose);
+    end;
+
+
 end;
 
-function Tdmsqldb.ChangeConnection(sDBSection: string): boolean;
+procedure Tdmsqldb.ChangeConnection(sDBSection: string);
 begin
-  result:=false;
   RefreshCredentials(sDBSection);
   Initialize;
   OpenConnection;
   If dmsqldb.SQLConnector1.Connected then begin
     FsConnectMessage:='Connection established to '+sDBSection+', Database ready';
-    result:=true;
   end
   else
     FsConnectMessage:='Could not establish connection to '+sDBSection+', Database offline';
+
+  DoInfo(self, infoDatabaseChanged);  //Inform other objects that something might have changed
 
   showmessage(FsConnectMessage);
 end;
@@ -543,6 +633,44 @@ begin
   s:=s+LineEnding+'.LibraryName :'+ SQLDBLibraryLoader1.LibraryName;
 
   MessageDlg(s, mtInformation, [mbOK], 0);
+end;
+
+procedure Tdmsqldb.RenewMenuItems(mCon: TMenuItem);
+var
+  slSections:TStringlist;
+  i:integer;
+  MyItem:TMenuItem;
+  sSection:string;
+begin
+  For i:= mCon.Count-1 downto 0 do
+  mCon.Delete(i);
+  mCon.Enabled:=false;   //disable for it has no no items
+
+  slSections:=TStringlist.Create;
+  try
+    FIniFile.ReadSections(slSections);
+    for i:=0 to slSections.Count -1 do
+    begin
+      sSection:=slSections.Strings[i];
+      if sSection='Standard' then continue;
+
+      MyItem:=TMenuItem.Create(mCon);
+      MyItem.Caption := FIniFile.ReadString(sSection,'caption','no caption');
+      MyItem.Caption := sSection;
+      MyItem.OnClick:= @MyMenuClick;
+      mCon.Add(MyItem);
+    end;
+  finally
+    freeandnil(slSections);
+  end;
+  if mCon.Count >0 then mCon.Enabled:=true; //enable if it has Items
+
+end;
+
+procedure Tdmsqldb.MyMenuClick(Sender: TObject);
+begin
+  //showmessage('clickt was: ' + TMenuItem(Sender).Caption); //just for debugging
+  ChangeConnection(TMenuItem(Sender).Caption);
 end;
 
 function Tdmsqldb.GetStandardLibraryName(sConnector: string): string;
@@ -673,6 +801,16 @@ begin
   SQLConnector1.Hostname:=FrCredentials.server;
 end;
 
+procedure Tdmsqldb.ShowScriptException(Sender: TObject; Statement: TStrings;
+  TheException: Exception; var Continue: boolean);
+begin
+  // Shows script execution error to user
+  // todo: should really be a separate form with a memo big enough to display a large statement
+  ShowMessage('Script error: '+TheException.Message+LineEnding+
+    Statement.Text);
+  Continue:=false; //indicate script should stop
+end;
+
 
 
 function Tdmsqldb.GetDatabaseVersion: string;
@@ -750,7 +888,7 @@ function Tdmsqldb.ReadDefaultCredentialsFromIni: TDBCredentials;
 var
    sDefaultSectionName:string;
 begin
-   sDefaultSectionName:=FIniFile.ReadString('Standard','startdbfromsection','SQLITE_demodb');
+   sDefaultSectionName:=FIniFile.ReadString('Standard','startdbfromsection','no standard section defined');
    result:= GetCredentialsFromIniSection(sDefaultSectionName);
 end;
 
@@ -775,6 +913,7 @@ begin
   result.ConnectorType:=FIniFile.ReadString(sSection,'ConnectorType',rStdCredentials.ConnectorType);
   result.customlibraryname:=FIniFile.ReadString(sSection,'customlibraryname','');
   result.caption:=FIniFile.ReadString(sSection,'caption','no caption');
+  result.CustomSQLScriptFileName:=FIniFile.ReadString(sSection,'CustomSQLScriptFileName','');
   result.section:=sSection;
   result.WasConnectionSuccess:=FIniFile.ReadString(sSection,'WasConnectionSuccess','1');
 

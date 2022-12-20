@@ -32,32 +32,6 @@ object dmsqldb: Tdmsqldb
     Left = 396
     Top = 86
   end
-  object SQLScript1: TSQLScript
-    DataBase = SQLConnector1
-    Transaction = SQLTransaction1
-    AutoCommit = False
-    UseDollarString = False
-    Directives.Strings = (
-      'SET TERM'
-      'COMMIT WORK'
-      'COMMIT RETAIN'
-      'COMMIT'
-      '#IFDEF'
-      '#IFNDEF'
-      '#ELSE'
-      '#ENDIF'
-      '#DEFINE'
-      '#UNDEF'
-      '#UNDEFINE'
-    )
-    Terminator = ';'
-    CommentsinSQL = True
-    UseSetTerm = True
-    UseCommit = True
-    UseDefines = True
-    Left = 392
-    Top = 210
-  end
   object SQLQuery1: TSQLQuery
     FieldDefs = <>
     Database = SQLConnector1

@@ -32,6 +32,22 @@ const
   cDelimiter                 ='@';             //used standard Delimiter for several strings
   cUNDEF                      ='undefined';    //standard value of undefined results
 
+resourcestring
+  rs_ErrFileName = 'FileName: ';
+  rs_ErrMethodname = 'MethodName: ';
+  rs_ErrLinenumber = 'Linenumber ';
+  rs_ErrWasnotfound = 'but it was not found!';
+  rs_ErrPleaseProvide ='Please provide %s in one of the searchpaths';
+  rs_ErrPleaseProvideEither = 'Please provide either %s or %t in one of the searchpaths';
+  rs_ErrTtfLibrary ='tried to find Library %s in ';
+  rs_ErrTtfSQLImportfile ='tried to find SQL import File ';
+  rs_ErrTtfSQLDatafile ='tried to find SQL data File in ';
+  rs_ErrTtfConfigFile = 'tried to find the database configuration file %s in';
+  rs_ErrTtfSQLCreatingDatafile =' creating standard database file %s in application directory instead ';
+  rs_ErrSQLCreatingConfigFile = ' creating the database configuration file %s in application directory instead ';
+  rs_ErrSQLOldFileDeleted = 'Old database file was deleted and will be created as a brand new file';
+  rs_ErrPossibleHelp = 'Possibly the following might help also:';
+
 function GuessFile(const sFileName: string; const sWhereToSearch: string;
   var sSearched: string): string;      //tries to find a file in application directory and other directories
 function GuessLibraryLocation(sLibraryName:string='';sConnectorType:string=''):string; //tries to find the SQL access library
@@ -126,16 +142,14 @@ begin
 
   if result=cUNDEF  then begin
     s:=  LineEnding
-        + 'File: ' + {$INCLUDE %FILE%} + LineEnding
-        + 'Methodname: ' +  {$I %CURRENTROUTINE%} + LineEnding
-        + 'Linenumber: ' + {$INCLUDE %LINE%} + LineEnding +LineEnding
-        + 'tried to find Library ' + sLibName + ' in '
+        + rs_ErrFileName + {$INCLUDE %FILE%} + LineEnding
+        + rs_ErrMethodName +  {$I %CURRENTROUTINE%} + LineEnding
+        + rs_ErrLinenumber + {$INCLUDE %LINE%} + LineEnding +LineEnding
+        + format(rs_ErrTtfLibrary,[sLibName]) // 'tried to find Library ' + sLibName + ' in '
         + LineEnding + LineEnding
         + sSearched
-        + LineEnding + LineEnding+ 'but it was not found!' + LineEnding+ LineEnding
-        + 'Please provide ' + sLibName +' in one of the searchpaths'+ LineEnding;
-
-
+        + LineEnding + LineEnding+ rs_ErrWasnotfound + LineEnding+ LineEnding
+        + format(rs_ErrPleaseProvide,[sLibName])+ LineEnding;  //+ 'Please provide ' + sLibName +' in one of the searchpaths';
 
     case sConnectorType of
 
@@ -149,12 +163,24 @@ begin
 
         'MSSQLServer':
           begin
+            {$if Defined(WINDOWS)}
             s:=s + 'The missing file may be downloaded at https://www.freetds.org/ or https://www.microsoft.com/en-us/sql-server/sql-server-downloads'
+            {$elseif Defined(Linux)}
+
+            {$elseif Defined(Darwin)}
+
+            {$endif}
           end;
 
         'MySQL 4.0','MySQL 4.1','MySQL 5.0','MySQL 5.1','MySQL 5.5','MySQL 5.6','MySQL 5.7','MySQL 8.0':
           begin
+            {$if Defined(WINDOWS)}
             s:=s + 'The missing file may be downloaded at https://www.mysql.com/  or https://mariadb.org/'
+            {$elseif Defined(Linux)}
+
+            {$elseif Defined(Darwin)}
+
+            {$endif}
           end;
 
         'ODBC':
@@ -171,12 +197,16 @@ begin
 
         'SQLite3':
           begin
+            {$if Defined(WINDOWS)}
             s:=s + 'The missing file may be downloaded at https://www.sqlite.org/download.html'
-                {$ifdef Unix}
-                + LineEnding + LineEnding
-                + 'Possibly the following might help also:'
-                + 'sudo apt-get install sqlite3 libsqlite3-dev'
-                {$endif} ;
+            {$elseif Defined(Linux)}
+            + LineEnding + LineEnding
+            + rs_ErrPossibleHelp // 'Possibly the following might help also:'
+            + 'sudo apt-get install sqlite3 libsqlite3-dev'
+            {$elseif Defined(Darwin)}
+            s:=s + 'SQLite should be preinstalled on all modern MacOS Versions. Possibly see https://www.sqlite.org/download.html';
+            {$endif}
+
           end;
 
         'Sybase':
@@ -195,7 +225,7 @@ end;
 
 {
 The default import file or a file defined by the developer is searched and used.
-If the user is allowed to select an import file set bAllowOpenDialog to true;
+If the user is allowed to select an import file set bAllowOpenDialog in configfile to true;
 }
 function GuessSQLImportFile(sSQLCustomImportFileName: string;
   bAllowOpenDialog: boolean): string;
@@ -237,23 +267,23 @@ begin
       s:= cSQLStandardImportFileName + ' in '
       + LineEnding + LineEnding
       + sSearchedin
-      + 'but it was not found!' + LineEnding+ LineEnding
-      + 'Please provide ' + cSQLStandardImportFileName +' in one of the searchpaths';
+      + rs_ErrWasnotfound + LineEnding+ LineEnding
+      + format(rs_ErrPleaseProvide,[cSQLStandardImportFileName]); //+ 'Please provide ' + cSQLStandardImportFileName +' in one of the searchpaths';
 
     end
     else begin
       s:= 'either' + sSQLCustomImportFileName + ' or ' + cSQLStandardImportFileName + ' in '
       + LineEnding + LineEnding
       + sSearchedin
-      + 'but it was not found!' + LineEnding+ LineEnding
-      + 'Please provide ' + 'either' + sSQLCustomImportFileName + ' or ' + cSQLStandardImportFileName +' in one of the searchpaths';
+      + rs_ErrWasnotfound + LineEnding+ LineEnding
+      + format(rs_ErrPleaseProvideEither,[cSQLStandardImportFileName,cSQLStandardImportFileName]); //'Please provide ' + 'either' + sSQLCustomImportFileName + ' or ' + cSQLStandardImportFileName +' in one of the searchpaths';
     end;
 
     showmessage( LineEnding
-                          + 'File: ' + {$INCLUDE %FILE%} + LineEnding
-                          + 'Methodname: ' +  {$I %CURRENTROUTINE%} + LineEnding
-                          + 'Linenumber: ' + {$INCLUDE %LINE%} + LineEnding +LineEnding
-                          + 'tried to find SQL import File '
+                          + rs_ErrFileName + {$INCLUDE %FILE%} + LineEnding
+                          + rs_ErrMethodName +  {$I %CURRENTROUTINE%} + LineEnding
+                          + rs_ErrLinenumber + {$INCLUDE %LINE%} + LineEnding +LineEnding
+                          + rs_ErrTtfSQLImportfile  //+ 'tried to find SQL import File '
                           + s );
 
   end;
@@ -277,15 +307,16 @@ begin
 
   if result=cUNDEF  then begin
     showmessage( LineEnding
-                + 'File: ' + {$INCLUDE %FILE%} + LineEnding
-                + 'Methodname: ' +  {$I %CURRENTROUTINE%} + LineEnding
-                + 'Linenumber: ' + {$INCLUDE %LINE%} + LineEnding +LineEnding
-                + 'tried to find SQL data File in'
+                + rs_ErrFileName + {$INCLUDE %FILE%} + LineEnding
+                + rs_ErrMethodName +  {$I %CURRENTROUTINE%} + LineEnding
+                + rs_ErrLinenumber + {$INCLUDE %LINE%} + LineEnding +LineEnding
+                + rs_ErrTtfSQLDatafile // 'tried to find SQL data File in'
                 + LineEnding + LineEnding
                 + sSearchedin
-                + 'but it was not found!' + LineEnding+ LineEnding
-                + 'Please provide '  + cSQLDatabaseFile +' in one of the searchpaths'+ LineEnding+ LineEnding
-                +' creating standard database file '+cSQLDatabaseFile+' in application directory instead');
+                + rs_ErrWasnotfound + LineEnding+ LineEnding
+                + format(rs_ErrPleaseProvide,[cSQLDatabaseFile])+ LineEnding+ LineEnding  //'Please provide '  + cSQLDatabaseFile +' in one of the searchpaths'
+                + format(rs_ErrTtfSQLCreatingDatafile,[cSQLDatabaseFile]) //' creating standard database file '+cSQLDatabaseFile+' in application directory instead');
+                );
 
     result:=cSQLDatabaseFile;
   end;
@@ -294,7 +325,7 @@ begin
     if FileExists(result) then begin
       DeleteFile(result);
       //if you want extra information uncomment next line.
-      //showmessage('old database file was deleted and will be created as a brand new file');
+      //showmessage(rs_ErrSQLOldFileDeleted ); //'old database file was deleted and will be created as a brand new file'
     end;
   end;
 
@@ -325,17 +356,16 @@ begin
 
   if result=cUNDEF  then begin
     showmessage( LineEnding
-                + 'File: ' + {$INCLUDE %FILE%} + LineEnding
-                + 'Methodname: ' +  {$I %CURRENTROUTINE%} + LineEnding
-                + 'Linenumber: ' + {$INCLUDE %LINE%} + LineEnding +LineEnding
-                + 'tried to find the database configuration file in'
+                + rs_ErrFileName + {$INCLUDE %FILE%} + LineEnding
+                + rs_ErrMethodName +  {$I %CURRENTROUTINE%} + LineEnding
+                + rs_ErrLinenumber + {$INCLUDE %LINE%} + LineEnding +LineEnding
+                + format(rs_ErrTtfConfigFile,[cDBIniFileName]) // 'tried to find the database configuration file in'
                 + LineEnding + LineEnding
                 + sSearched
-                + 'but it was not found!' + LineEnding+ LineEnding
-                + 'Please provide '  + cDBIniFileName +' in one of the searchpaths'+ LineEnding+ LineEnding
-                +' creating the database configuration file '+cDBIniFileName+' in application directory instead');
-
-
+                + rs_ErrWasnotfound + LineEnding+ LineEnding
+                + format(rs_ErrPleaseProvide,[cDBIniFileName])+ LineEnding+ LineEnding  //+ 'Please provide '  + cDBIniFileName +' in one of the searchpaths'
+                + format(rs_ErrSQLCreatingConfigFile,[cDBIniFileName]) //' creating the database configuration file '+cDBIniFileName+' in application directory instead'
+                );
 
     sl:=TStringlist.Create;
     try
@@ -347,12 +377,6 @@ begin
       sl.Append('; shall the database be chosen at startup? true/false)');
       sl.Append('; -->standard is false  (True=1 False=0)');
       sl.Append('ChooseDatabaseOnStartup=false');
-      sl.Append('');
-
-      sl.Append('; the standard import file name for SQL data and commands ist standard.sql');
-      sl.Append('; if you want to use another file, its name goes here');
-      sl.Append('; -->standard is false  (True=1 False=0)');
-      sl.Append('SQLCustomImportFileName=false');
       sl.Append('');
 
       sl.Append('; if neither the Standard import file (import.sql) nor the defined SQLCustomImportFileName');
@@ -387,6 +411,14 @@ begin
       sl.Append(';if you want to use a custom access library their name goes here');
       sl.Append(';otherwise standard access libraries are used');
       sl.Append('CustomLibraryName=');
+      sl.Append('');
+      sl.Append('; the standard import script file name for SQL data and commands is import.sql');
+      sl.Append('; if you want to use another file, its name goes here');
+      sl.Append('; this way you can specify different files per connection ');
+      sl.Append('; -->if no file is defines the standard import file will be taken');
+      sl.Append('CustomSQLScriptFileName=');
+      sl.Append('');
+
       sl.Append('order=0');
       sl.Append(';identifies successful connections. 0=connection failed 1=connection untested  2=connection successful');
       sl.Append('WasConnectionSuccess=');

@@ -6,7 +6,8 @@ interface
 
 uses
   Classes, SysUtils, BufDataset, DB, memds, Forms, Controls, Graphics, Dialogs,
-  DBGrids, StdCtrls, DBCtrls, ActnList, ComCtrls, Menus, inifiles, Grids;
+  DBGrids, StdCtrls, DBCtrls, ActnList, ComCtrls, Menus, inifiles, Grids,
+  EditBtn, Buttons;
 
 const
   cEDIT=2;
@@ -29,7 +30,7 @@ type
     actn_TestConnection: TAction;
     actn_ReadAllFromIni: TAction;
     ActionList1: TActionList;
-    Button1: TButton;
+    bttnReadFromIni: TButton;
     bttnSave: TButton;
     bttnMakeDefault: TButton;
     bttnGetStandardCredentials: TButton;
@@ -43,6 +44,7 @@ type
     cbAllowOpenDialogOnSQLImportFile: TCheckBox;
     DataSource1: TDataSource;
     cbConnectionTypes: TDBComboBox;
+    eCustomSQLScriptFileName: TDBEdit;
     DBNavigator1: TDBNavigator;
     edDefaultConnection: TEdit;
     eSection: TDBEdit;
@@ -56,6 +58,7 @@ type
     Label10: TLabel;
     Label11: TLabel;
     Label12: TLabel;
+    Label13: TLabel;
     mDescription: TDBMemo;
     eSQLCustomImportFileName: TEdit;
     Label1: TLabel;
@@ -70,6 +73,8 @@ type
     MenuItem1: TMenuItem;
     PageControl1: TPageControl;
     PopupMenu1: TPopupMenu;
+    SpeedButton1: TSpeedButton;
+    SpeedButton2: TSpeedButton;
     tsPrepareExample: TTabSheet;
     tsConnections: TTabSheet;
     tsConfiguration: TTabSheet;
@@ -89,7 +94,10 @@ type
     procedure DBGrid1PrepareCanvas(sender: TObject; DataCol: Integer;
       Column: TColumn; AState: TGridDrawState);
     procedure DBNavigator1Click(Sender: TObject; Button: TDBNavButtonType);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
     procedure FormCreate(Sender: TObject);
+    procedure SpeedButton1Click(Sender: TObject);
+    procedure SpeedButton2Click(Sender: TObject);
     procedure TConnectionsBeforeDelete(DataSet: TDataSet);
   private
     FbIsDatabaseChooseMode: boolean;
@@ -151,6 +159,65 @@ begin
   TConnections.First;
 end;
 
+procedure TfrmCredentials.SpeedButton1Click(Sender: TObject);
+var
+  OpenDialog:TOpendialog;
+begin
+  OpenDialog := TOpendialog.Create(nil);
+  {$IFDEF UNIX}
+    {$ifdef RasPi}
+
+    {$else}
+      {$ifdef DARWIN}
+
+      {$else}
+         OpenDialog.DefaultExt:='*.so';
+      {$endif}
+    {$endif}
+  {$ELSE}
+    OpenDialog.DefaultExt:='*.dll';
+  {$ENDIF}
+
+  try
+    if OpenDialog.Execute then begin
+      TConnections.FieldByName('CustomLibraryName').AsString:=ExtractFileName(OpenDialog.FileName);
+    end;
+  finally
+    freeandnil(OpenDialog);
+  end;
+end;
+
+procedure TfrmCredentials.SpeedButton2Click(Sender: TObject);
+var
+  OpenDialog:TOpendialog;
+begin
+  OpenDialog := TOpendialog.Create(nil);
+  {$IFDEF UNIX}
+    {$ifdef RasPi}
+
+    {$else}
+      {$ifdef DARWIN}
+
+      {$else}
+         OpenDialog.DefaultExt:='*.sql';
+      {$endif}
+    {$endif}
+  {$ELSE}
+    OpenDialog.DefaultExt:='*.sql';
+    OpenDialog.InitialDir:=ExtractFilePath(Application.ExeName);
+  {$ENDIF}
+
+  try
+    if OpenDialog.Execute then begin
+      TConnections.FieldByName('CustomSQLScriptFileName').AsString:=ExtractFileName(OpenDialog.FileName);
+    end;
+  finally
+    freeandnil(OpenDialog);
+  end;
+
+end;
+
+
 procedure TfrmCredentials.DBNavigator1Click(Sender: TObject;
   Button: TDBNavButtonType);
 begin
@@ -186,9 +253,23 @@ begin
   end; //case
 end;
 
-procedure TfrmCredentials.TestConnection;
+procedure TfrmCredentials.FormCloseQuery(Sender: TObject; var CanClose: Boolean
+  );
 begin
-  dmsqldb.ChangeConnection(eSection.Text);
+  if not(TConnections.State in [dsBrowse]) then
+  begin
+    Showmessage('Close edit mode before closing the credential manager');
+    CanClose:=false;
+  end;
+end;
+
+procedure TfrmCredentials.TestConnection;
+var
+  sNewSection:string;
+begin
+  sNewSection:=TConnections.FieldByName('Section').AsString;
+  //sNewSection:=eSection.Text;
+  dmsqldb.ChangeConnection(sNewSection);
 
   if dmsqldb.SQLConnector1.Connected then begin
     TConnections.Edit;
@@ -214,6 +295,7 @@ begin
       ePassword.Enabled:=not ePassword.Enabled;
       eCustomLibraryName.Enabled:=not eCustomLibraryName.Enabled;
       eCaption.Enabled:=not eCaption.Enabled;
+      eCustomSQLScriptFileName.Enabled:=not eCustomSQLScriptFileName.Enabled;
       mDescription.Enabled:=not mDescription.Enabled;
 
       actn_GetStandardCredentials.Enabled:=not actn_GetStandardCredentials.Enabled;
@@ -223,6 +305,8 @@ begin
 
       actn_SaveAllToIni.Enabled:=not actn_SaveAllToIni.Enabled;
       actn_SaveCurrentToIni.Enabled:=not actn_SaveCurrentToIni.Enabled;
+      SpeedButton1.Enabled:=not SpeedButton1.Enabled;
+      SpeedButton2.Enabled:=not SpeedButton2.Enabled;
    end ;
    1 : begin   //Browse Mode
      cbConnectionTypes.Enabled:=false;
@@ -233,6 +317,8 @@ begin
      ePassword.Enabled:=false;
      eCustomLibraryName.Enabled:=false;
      eCaption.Enabled:=false;
+     eCustomSQLScriptFileName.Enabled:=false;
+
      mDescription.Enabled:=false;
 
      actn_GetStandardCredentials.Enabled:=false;
@@ -241,6 +327,8 @@ begin
      actn_ReadAllFromIni.Enabled:=true;
      actn_SaveAllToIni.Enabled:=true;
      actn_SaveCurrentToIni.Enabled:=true;
+     SpeedButton1.Enabled:=false;
+     SpeedButton2.Enabled:=false;
    end ;
 
    2 : begin //Edit Mode
@@ -252,6 +340,7 @@ begin
      ePassword.Enabled:=true;
      eCustomLibraryName.Enabled:=true;
      eCaption.Enabled:=true;
+     eCustomSQLScriptFileName.Enabled:=true;
      mDescription.Enabled:=true;
 
      actn_GetStandardCredentials.Enabled:=true;
@@ -260,6 +349,8 @@ begin
      actn_ReadAllFromIni.Enabled:=false;
      actn_SaveAllToIni.Enabled:=false;
      actn_SaveCurrentToIni.Enabled:=false;
+     SpeedButton1.Enabled:=true;
+     SpeedButton2.Enabled:=true;
    end ;
 
   else
@@ -405,6 +496,8 @@ begin
       TConnections.FieldByName('CustomLibraryName').AsString:=FIniFile.ReadString(sSection,'CustomLibraryName','');
       TConnections.FieldByName('WasConnectionSuccess').AsString:=FIniFile.ReadString(sSection,'WasConnectionSuccess','1');
 
+      TConnections.FieldByName('CustomSQLScriptFileName').AsString:=FIniFile.ReadString(sSection,'CustomSQLScriptFileName','');
+
       TConnections.Post;
     end;  //for
     TConnections.First;
@@ -422,7 +515,7 @@ begin
   cbDeleteDatabasefileBeforeOpen.Checked:=FIniFile.ReadBool('Standard','DeleteDatabasefileBeforeOpen',true);
   cbChooseDatabaseOnStartup.Checked:=FIniFile.ReadBool('Standard','ChooseDatabaseOnStartup',false);
   cbAllowOpenDialogOnSQLImportFile.Checked:=FIniFile.ReadBool('Standard','AllowOpenDialogOnSQLImportFile',false);
-  eSQLCustomImportFileName.Text:=FIniFile.ReadString('Standard','SQLCustomImportFileName','');
+//TODO  eSQLCustomImportFileName.Text:=FIniFile.ReadString('Standard','SQLCustomImportFileName','');
   edDefaultConnection.Text:=FIniFile.ReadString('Standard','startdbfromsection','');
 end;
 
@@ -433,7 +526,7 @@ begin
   FIniFile.WriteBool('Standard','DeleteDatabasefileBeforeOpen',cbDeleteDatabasefileBeforeOpen.Checked);
   FIniFile.WriteBool('Standard','ChooseDatabaseOnStartup',cbChooseDatabaseOnStartup.Checked);
   FIniFile.WriteBool('Standard','AllowOpenDialogOnSQLImportFile',cbAllowOpenDialogOnSQLImportFile.Checked);
-  FIniFile.WriteString('Standard','SQLCustomImportFileName',eSQLCustomImportFileName.Text);
+  //TODO FIniFile.WriteString('Standard','SQLCustomImportFileName',eSQLCustomImportFileName.Text);
 end;
 
 procedure TfrmCredentials.WriteCredentials(sSection: string);
@@ -445,6 +538,7 @@ begin
   FIniFile.Writestring(sSection,'ConnectorType',TConnections.FieldByName('connectortype').AsString);
   FIniFile.Writestring(sSection,'CustomLibraryName',TConnections.FieldByName('customlibraryname').AsString);
   FIniFile.Writestring(sSection,'Caption',TConnections.FieldByName('caption').AsString);
+  FIniFile.Writestring(sSection,'CustomSQLScriptFileName',TConnections.FieldByName('CustomSQLScriptFileName').AsString);
   FIniFile.Writestring(sSection,'Description',TConnections.FieldByName('description').AsString);
   FIniFile.Writestring(sSection,'WasConnectionSuccess',TConnections.FieldByName('WasConnectionSuccess').AsString);
 end;

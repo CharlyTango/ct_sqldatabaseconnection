@@ -57,6 +57,8 @@ type
     procedure actn_DisconnectFromDBExecute(Sender: TObject);
     procedure actn_ImportDataExecute(Sender: TObject);
     procedure actn_QueryTableExecute(Sender: TObject);
+    procedure DBNavigator1BeforeAction(Sender: TObject; Button: TDBNavButtonType
+      );
   private
     procedure MyOpenQuery;
     procedure MyImportData;
@@ -134,13 +136,9 @@ end;
 
 procedure TFrameExample1.Initialize;
 begin
-  MemoLog.Clear;
+  ToggleControls(3); //Memolog
   PageControl1.ActivePage:=tabsheetConnection;
   if dmsqldb.SQLConnector1.Connected then begin
-    MemoLog.Append('The Connection to the database was established and Data was retrieved automatically.');
-    MemoLog.Append('');
-    MemoLog.Append('If You want to test the connection process yourselve use the numbered buttons in their sequence');
-    MemoLog.Append('Scrolling the memofield may help in some cases');
     ToggleControls(1);
     MyOpenQuery;
   end;
@@ -173,8 +171,14 @@ begin
       actn_QueryTable.Enabled:=true;
       actn_ImportData.Enabled:=true;
     end;
-    3: begin
+    3: begin   //refresh Memo Log
       MemoLog.Clear;
+      if dmsqldb.SQLConnector1.Connected then begin
+        MemoLog.Append('The Connection to the database was established and Data was retrieved automatically.');
+        MemoLog.Append('');
+      end;
+      MemoLog.Append('If You want to test the connection process yourselve use the numbered buttons in their sequence');
+      MemoLog.Append('Scrolling the memofield may help in some cases to see deeper info');
     end;
 
   end;
@@ -198,6 +202,15 @@ end;
 procedure TFrameExample1.actn_QueryTableExecute(Sender: TObject);
 begin
   MyOpenQuery;
+end;
+
+procedure TFrameExample1.DBNavigator1BeforeAction(Sender: TObject;
+  Button: TDBNavButtonType);
+begin
+  if Button = nbRefresh then
+  begin
+    SQLQuery1.ApplyUpdates;
+  end;
 end;
 
 end.

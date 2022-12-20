@@ -63,7 +63,7 @@ object FrameExample1: TFrameExample1
         object Button2: TButton
           Left = 16
           Height = 44
-          Top = 120
+          Top = 121
           Width = 238
           Action = actn_ImportData
           TabOrder = 1
@@ -202,6 +202,7 @@ object FrameExample1: TFrameExample1
         Top = 1
         Width = 819
         Align = alTop
+        BeforeAction = DBNavigator1BeforeAction
         BevelOuter = bvNone
         ChildSizing.EnlargeHorizontal = crsScaleChilds
         ChildSizing.EnlargeVertical = crsScaleChilds
