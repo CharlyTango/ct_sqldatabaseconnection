@@ -2,7 +2,7 @@
 Connection framework for SQL databases (Lazarus/FPC)
 ## Content
 
-### The framework consists of the following units locates in the **source** folder:
+### The framework consists of the following units located in the **source** folder:
 <ul>
 <li> udmsqldb.pas/.lfm -- data module to connect to databases
 <li> uguessfile.pas Unit -- for search and help function of various files.
