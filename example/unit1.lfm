@@ -1,0 +1,104 @@
+object Form1: TForm1
+  Left = 387
+  Height = 340
+  Top = 333
+  Width = 699
+  Caption = 'Form1'
+  ClientHeight = 320
+  ClientWidth = 699
+  Menu = MainMenu1
+  OnActivate = FormActivate
+  OnClose = FormClose
+  OnCreate = FormCreate
+  LCLVersion = '2.2.4.0'
+  object StatusBar1: TStatusBar
+    Left = 0
+    Height = 23
+    Top = 297
+    Width = 699
+    Panels = <>
+  end
+  object comboDBSelector: TComboBox
+    AnchorSideTop.Control = StatusBar1
+    AnchorSideRight.Control = StatusBar1
+    AnchorSideRight.Side = asrBottom
+    Left = 544
+    Height = 23
+    Top = 297
+    Width = 135
+    Anchors = [akTop, akRight]
+    BorderSpacing.Right = 20
+    ItemHeight = 15
+    OnChange = comboDBSelectorChange
+    ReadOnly = True
+    TabOrder = 0
+    Text = 'database offline'
+  end
+  object bttnManageCredentials: TBitBtn
+    AnchorSideTop.Control = StatusBar1
+    AnchorSideRight.Side = asrBottom
+    Left = 384
+    Height = 24
+    Top = 297
+    Width = 156
+    Action = actnOpenCredentialManager
+    Anchors = [akTop, akRight]
+    TabOrder = 1
+  end
+  object Label1: TLabel
+    Left = 73
+    Height = 165
+    Top = 40
+    Width = 326
+    Caption = 'If you want to see example controls please enable'#13#10'the example switch and recompile.'#13#10#13#10'Example Switch:'#13#10'{.$DEFINE UseFrameExampleCode}  '#13#10#13#10'To enable a switch remove the period in the DEFINE statement'#13#10#13#10'{.$DEFINE UseExampleCode}'#13#10'to'#13#10'{$DEFINE UseExampleCode}'
+    ParentColor = False
+    WordWrap = True
+  end
+  object DataSource1: TDataSource
+    DataSet = SQLQuery1
+    Left = 536
+    Top = 96
+  end
+  object SQLQuery1: TSQLQuery
+    PacketRecords = -1
+    FieldDefs = <>
+    Options = [sqoKeepOpenOnCommit, sqoAutoApplyUpdates, sqoAutoCommit]
+    Params = <>
+    Macros = <>
+    Left = 432
+    Top = 96
+  end
+  object MainMenu1: TMainMenu
+    Left = 432
+    Top = 23
+    object MenuItem3: TMenuItem
+      Caption = 'Application'
+      object MenuItem4: TMenuItem
+        Action = actnCloseApplication
+      end
+    end
+    object MenuItem1: TMenuItem
+      Caption = 'Database'
+      object MenuItem2: TMenuItem
+        Action = actnOpenCredentialManager
+      end
+      object mnuChangeConnection: TMenuItem
+        Caption = 'Change Connection To...'
+      end
+    end
+  end
+  object ActionList1: TActionList
+    Left = 528
+    Top = 24
+    object actnOpenCredentialManager: TAction
+      Category = 'Admin_Database'
+      Caption = 'Open Credential Manager'
+      OnExecute = actnOpenCredentialManagerExecute
+    end
+    object actnCloseApplication: TAction
+      Category = 'Admin_Database'
+      Caption = 'Close Application'
+      OnExecute = actnCloseApplicationExecute
+    end
+  end
+end
