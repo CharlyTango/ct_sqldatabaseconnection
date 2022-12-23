@@ -1,0 +1,13 @@
+
+
+There are several ways to use the framework. 
+
+- Option A
+Copy everything into a directory and use the package file to make the path to the necessary files known to the Lazarus project.
+The package is a runtime package and has no effect on the Lazarus GUI itself.
+
+- Option B
+Copy the files in the source directory to the filesukures of your own project and include and use them as usual via the uses clause.
+
+In the directory /example is an example project that shows the usage
+
