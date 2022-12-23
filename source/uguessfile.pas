@@ -200,6 +200,7 @@ begin
             {$if Defined(WINDOWS)}
             s:=s + 'The missing file may be downloaded at https://www.sqlite.org/download.html'
             {$elseif Defined(Linux)}
+            s:=s + 'The missing file may be downloaded at https://www.sqlite.org/download.html'
             + LineEnding + LineEnding
             + rs_ErrPossibleHelp // 'Possibly the following might help also:'
             + 'sudo apt-get install sqlite3 libsqlite3-dev'
