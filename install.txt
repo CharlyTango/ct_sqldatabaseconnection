@@ -7,7 +7,11 @@ Copy everything into a directory and use the package file to make the path to th
 The package is a runtime package and has no effect on the Lazarus GUI itself.
 
 - Option B
-Copy the files in the source directory to the filesukures of your own project and include and use them as usual via the uses clause.
+Copy the files to the source directory to all the other the files used by your own project. Then include and use them as usually via the uses clause.
+
+....
+uses ..., ct_sqdatabaseconnection,....;
+.....
 
 In the directory /example is an example project that shows the usage
 
