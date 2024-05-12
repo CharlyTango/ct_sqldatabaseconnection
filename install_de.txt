@@ -1,0 +1,23 @@
+Es gibt mehrere Möglichkeiten, das Framework zu nutzen. 
+
+- Möglichkeit A (empfohlen)
+Kopieren sie alles in ein Verzeichnis und benutzen sie die Package Datei, um den Pfad zu den notwendigen Dateien dem Lazarus Projekt bekannt zu machen.
+Das Package ist ein Laufzeit-Package und hat keinen Einfluß auf das Lazarus GUI selbst.
+
+Verwenden sie das Lazarus Package System locatetd im GUI Menü.
+-> Package - Package datei öffnen - Öffnen sie die Datei ct_sqdatabaseconnection.lpk
+-> Kompilieren, um sicherzustellen, daß es keine Versionsprobleme gibt
+-> Verwenden - Zum Projekt hinzufügen
+
+
+
+- Möglichkeit B
+Kopieren Sie die Dateien in das Quellverzeichnis zu allen anderen Quell-Dateien, die von Ihrem eigenen Projekt verwendet werden. 
+Binden Sie sie dann alle nötigen Dateien ein (alle im Souce Verzeichnis befindlichen Dateien dem Projekt hinzufügen) und verwenden Sie sie wie üblich über die uses-Klausel.
+
+....
+uses ..., ct_sqdatabaseconnection,....;
+.....
+
+Im Verzeichnis /example befindet sich ein Beispielprojekt, das die Anwendung des Packages zeigt
+
