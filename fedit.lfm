@@ -1,0 +1,39 @@
+object FormEdit: TFormEdit
+  Left = 617
+  Height = 673
+  Top = 377
+  Width = 854
+  Caption = 'FormEdit'
+  ClientHeight = 673
+  ClientWidth = 854
+  DesignTimePPI = 168
+  LCLVersion = '3.4.0.0'
+  object DBEdit1: TDBEdit
+    Left = 304
+    Height = 38
+    Top = 40
+    Width = 316
+    MaxLength = 0
+    TabOrder = 0
+  end
+  object DBEdit2: TDBEdit
+    Left = 304
+    Height = 38
+    Top = 104
+    Width = 316
+    MaxLength = 0
+    TabOrder = 1
+  end
+  object DataSource1: TDataSource
+    DataSet = SQLQuery1
+    Left = 170
+    Top = 386
+  end
+  object SQLQuery1: TSQLQuery
+    FieldDefs = <>
+    Params = <>
+    Macros = <>
+    Left = 328
+    Top = 386
+  end
+end

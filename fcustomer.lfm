@@ -1,0 +1,114 @@
+object frmCustomer: TfrmCustomer
+  Left = 565
+  Height = 293
+  Top = 189
+  Width = 375
+  Caption = 'frmCustomer'
+  ClientHeight = 293
+  ClientWidth = 375
+  OnCreate = FormCreate
+  LCLVersion = '3.4.0.0'
+  object DBGrid1: TDBGrid
+    Left = 0
+    Height = 120
+    Top = 0
+    Width = 375
+    Align = alClient
+    Color = clWindow
+    Columns = <>
+    DataSource = DataSource1
+    TabOrder = 0
+  end
+  object Panel1: TPanel
+    Left = 0
+    Height = 173
+    Top = 120
+    Width = 375
+    Align = alBottom
+    ClientHeight = 173
+    ClientWidth = 375
+    TabOrder = 1
+    object DBNavigator1: TDBNavigator
+      Left = 1
+      Height = 25
+      Top = 147
+      Width = 373
+      Align = alBottom
+      BevelOuter = bvNone
+      ChildSizing.EnlargeHorizontal = crsScaleChilds
+      ChildSizing.EnlargeVertical = crsScaleChilds
+      ChildSizing.ShrinkHorizontal = crsScaleChilds
+      ChildSizing.ShrinkVertical = crsScaleChilds
+      ChildSizing.Layout = cclLeftToRightThenTopToBottom
+      ChildSizing.ControlsPerLine = 100
+      ClientHeight = 25
+      ClientWidth = 373
+      DataSource = DataSource1
+      Options = []
+      TabOrder = 0
+    end
+    object DBEdit1: TDBEdit
+      Left = 149
+      Height = 23
+      Top = 17
+      Width = 179
+      DataField = 'FirstName'
+      DataSource = DataSource1
+      MaxLength = 0
+      TabOrder = 1
+    end
+    object DBEdit2: TDBEdit
+      Left = 149
+      Height = 23
+      Top = 48
+      Width = 179
+      DataField = 'LastName'
+      DataSource = DataSource1
+      MaxLength = 0
+      TabOrder = 2
+    end
+    object DBEdit3: TDBEdit
+      Left = 149
+      Height = 23
+      Top = 81
+      Width = 179
+      DataField = 'Email'
+      DataSource = DataSource1
+      MaxLength = 0
+      TabOrder = 3
+    end
+    object Label1: TLabel
+      Left = 56
+      Height = 15
+      Top = 16
+      Width = 52
+      Caption = 'Firstname'
+    end
+    object Label2: TLabel
+      Left = 56
+      Height = 15
+      Top = 48
+      Width = 53
+      Caption = 'LastName'
+    end
+    object Label3: TLabel
+      Left = 56
+      Height = 15
+      Top = 81
+      Width = 84
+      Caption = 'Email (required)'
+    end
+  end
+  object SQLQuery1: TSQLQuery
+    FieldDefs = <>
+    Params = <>
+    Macros = <>
+    Left = 96
+    Top = 16
+  end
+  object DataSource1: TDataSource
+    DataSet = SQLQuery1
+    Left = 192
+    Top = 24
+  end
+end

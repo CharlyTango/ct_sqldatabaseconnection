@@ -1,0 +1,25 @@
+object dmsqldb: Tdmsqldb
+  OldCreateOrder = False
+  Height = 301
+  HorizontalOffset = 1002
+  VerticalOffset = 391
+  Width = 786
+  PPI = 168
+  object SQLTransaction1: TSQLTransaction
+    Active = False
+    Database = SQLite3Connection1
+    Left = 350
+    Top = 56
+  end
+  object SQLite3Connection1: TSQLite3Connection
+    Connected = False
+    LoginPrompt = False
+    KeepConnection = False
+    Transaction = SQLTransaction1
+    OnLog = SQLite3Connection1Log
+    LogEvents = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack, detParamValue, detActualSQL]
+    AlwaysUseBigint = False
+    Left = 126
+    Top = 56
+  end
+end

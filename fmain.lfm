@@ -1,0 +1,53 @@
+object form_main: Tform_main
+  Left = 297
+  Height = 345
+  Top = 195
+  Width = 571
+  Caption = 'form_main'
+  ClientHeight = 345
+  ClientWidth = 571
+  Menu = MainMenu1
+  OnActivate = FormActivate
+  LCLVersion = '3.4.0.0'
+  object PageControl1: TPageControl
+    Left = 0
+    Height = 345
+    Top = 0
+    Width = 571
+    ActivePage = tsSearch
+    Align = alClient
+    TabIndex = 0
+    TabOrder = 0
+    object tsSearch: TTabSheet
+      Caption = 'Search'
+    end
+  end
+  object MainMenu1: TMainMenu
+    Left = 133
+    Top = 37
+    object MenuItem1: TMenuItem
+      Caption = 'File'
+    end
+    object MenuItem2: TMenuItem
+      Caption = 'Admin'
+      object MenuItem3: TMenuItem
+        Action = actn_maintain_artists
+      end
+      object MenuItem4: TMenuItem
+        Action = actn_maintain_customers
+      end
+    end
+  end
+  object ActionList1: TActionList
+    Left = 247
+    Top = 41
+    object actn_maintain_artists: TAction
+      Caption = 'Maintain Artists'
+      OnExecute = actn_maintain_artistsExecute
+    end
+    object actn_maintain_customers: TAction
+      Caption = 'Maintain Customers'
+      OnExecute = actn_maintain_customersExecute
+    end
+  end
+end

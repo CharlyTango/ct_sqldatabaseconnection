@@ -1,0 +1,11 @@
+object dmIcons: TdmIcons
+  OldCreateOrder = False
+  Height = 235
+  HorizontalOffset = 344
+  VerticalOffset = 225
+  Width = 280
+  object ImageList1: TImageList
+    Left = 73
+    Top = 47
+  end
+end

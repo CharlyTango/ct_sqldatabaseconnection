@@ -1,0 +1,52 @@
+object FormMaintainArtists: TFormMaintainArtists
+  Left = 770
+  Height = 485
+  Top = 706
+  Width = 593
+  Caption = 'FormMaintainArtists'
+  ClientHeight = 485
+  ClientWidth = 593
+  DesignTimePPI = 168
+  OnCreate = FormCreate
+  LCLVersion = '3.4.0.0'
+  object DBGrid1: TDBGrid
+    Left = 8
+    Height = 392
+    Top = 8
+    Width = 560
+    Color = clWindow
+    Columns = <>
+    DataSource = DataSource1
+    TabOrder = 0
+  end
+  object DBNavigator1: TDBNavigator
+    Left = 8
+    Height = 44
+    Top = 408
+    Width = 566
+    BevelOuter = bvNone
+    ChildSizing.EnlargeHorizontal = crsScaleChilds
+    ChildSizing.EnlargeVertical = crsScaleChilds
+    ChildSizing.ShrinkHorizontal = crsScaleChilds
+    ChildSizing.ShrinkVertical = crsScaleChilds
+    ChildSizing.Layout = cclLeftToRightThenTopToBottom
+    ChildSizing.ControlsPerLine = 100
+    ClientHeight = 44
+    ClientWidth = 566
+    DataSource = DataSource1
+    Options = []
+    TabOrder = 1
+  end
+  object SQLQuery1: TSQLQuery
+    FieldDefs = <>
+    Params = <>
+    Macros = <>
+    Left = 144
+    Top = 96
+  end
+  object DataSource1: TDataSource
+    DataSet = SQLQuery1
+    Left = 336
+    Top = 88
+  end
+end
